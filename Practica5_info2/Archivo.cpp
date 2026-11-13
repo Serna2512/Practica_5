@@ -1,7 +1,8 @@
 #include "Archivo.h"
 #include <iostream>
 
-Archivo::Archivo(std::string nombre) : nombreArchivo(nombre) {}
+
+Archivo::Archivo(string nombre) : nombreArchivo(nombre) {}
 
 Archivo::~Archivo() {
     cerrarArchivo();
@@ -9,44 +10,34 @@ Archivo::~Archivo() {
 
 bool Archivo::abrirArchivo() {
     archivo.open(nombreArchivo);
-    if (!archivo.is_open()) {
-        std::cerr << "Error al abrir el archivo: " << nombreArchivo << std::endl;
-        return false;
-    }
-    return true;
+    return archivo.is_open();
 }
 
-void Archivo::escribirEncabezado() {
-    if (archivo.is_open()) {
-        archivo << "TIEMPO,POSICIONES_X_Y" << std::endl;
-    }
-}
-
-void Archivo::guardarPosiciones(float t, const std::vector<Particula>& particulas) {
+void Archivo::guardarPosiciones(float t, const vector<Particula>& particulas) {
     if (!archivo.is_open()) return;
-
-    archivo << t;
     for (const auto& p : particulas) {
-        archivo << "," << p.getPosX() << "," << p.getPosY();
+        // Formato: P;tiempo;id;x;y;radio
+        archivo << "P;" << t << ";" << p.getId() << ";"
+                << p.getPosX() << ";" << p.getPosY() << ";"
+                << p.getRadio() << "\n";
     }
-    archivo << std::endl;
 }
 
 void Archivo::guardarColision(float t, TipoColision tipo, int idA, int idB, float x, float y) {
     if (!archivo.is_open()) return;
 
-    std::string tipoStr;
+    string tipoStr;
     switch(tipo) {
     case PARED: tipoStr = "PARED"; break;
     case OBSTACULO: tipoStr = "OBSTACULO"; break;
     case PARTICULA: tipoStr = "PARTICULA"; break;
     }
 
-    archivo << "COLISION," << t << "," << tipoStr << "," << idA << "," << idB << "," << x << "," << y << std::endl;
+    // Formato: C;tiempo;tipo;idA;idB;x;y
+    archivo << "C;" << t << ";" << tipoStr << ";" << idA << ";"
+            << idB << ";" << x << ";" << y << "\n";
 }
 
 void Archivo::cerrarArchivo() {
-    if (archivo.is_open()) {
-        archivo.close();
-    }
+    if (archivo.is_open()) archivo.close();
 }

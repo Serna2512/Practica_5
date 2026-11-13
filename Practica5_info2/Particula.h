@@ -30,9 +30,6 @@ public:
     void setMasa(float m);
     void setRadio(float r);
 
-    ~Particula();
-
-
 };
 
 #endif // PARTICULA_H
