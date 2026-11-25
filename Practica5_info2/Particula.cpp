@@ -16,6 +16,13 @@ void Particula::fusionar(Particula* otra) {
     // Conservación del momento lineal: m1*v1 + m2*v2 = (m1+m2)*v_final
     float nuevaMasa = this->masa + otra->masa;
 
+    // La partícula fusionada nace en el CENTRO DE MASA de las dos que chocaron:
+    // x_cm = (m1*x1 + m2*x2) / (m1 + m2)   (igual para y)
+    float nuevaX = (this->masa * this->posX + otra->masa * otra->posX) / nuevaMasa;
+    float nuevaY = (this->masa * this->posY + otra->masa * otra->posY) / nuevaMasa;
+    this->posX = nuevaX;
+    this->posY = nuevaY;
+
     // Calcular nuevas velocidades
     float nuevaVelX = (this->masa * this->velX + otra->masa * otra->velX) / nuevaMasa;
     float nuevaVelY = (this->masa * this->velY + otra->masa * otra->velY) / nuevaMasa;

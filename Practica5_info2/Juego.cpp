@@ -25,7 +25,7 @@ void Juego::reiniciar() {
         // Representante entre los pilares (rectángulo sin resistencia)
         Obstaculo rep(X(10, 5), 40, 5, 10, 0, j);
         jugadores.emplace_back(j == 0 ? "Jugador 1" : "Jugador 2",
-                               j == 0 ? 3.0f : ANCHO - 3.0f, 29.0f, j == 0 ? 1 : -1, rep);
+                               j == 0 ? 3.0 : ANCHO - 3.0, 29.0, j == 0 ? 1 : -1, rep);
     }
 
     estado = EstadoJuego::APUNTANDO;
@@ -43,14 +43,15 @@ void Juego::reiniciar() {
 // El proyectil nace en la boca del cañón: pivote + LARGO_CANON * (dirección del cañón).
 // ---------------------------------------------------------------------------------
 void Juego::disparar(float anguloGrados, float velocidad) {
-    if (estado != EstadoJuego::APUNTANDO) return;
+    if (estado != EstadoJuego::APUNTANDO){
+        return;}
     const Jugador& j = jugadores[turno];
-    float a = anguloGrados * PI / 180.0f;
+    float a = anguloGrados * PI / 180.0;
 
-    float vx = j.getDireccion() * velocidad * std::cos(a);
-    float vy = -velocidad * std::sin(a);
-    float x0 = j.getCanonX() + j.getDireccion() * LARGO_CANON * std::cos(a);
-    float y0 = j.getCanonY() - LARGO_CANON * std::sin(a);
+    float vx = j.getDireccion() * velocidad * cos(a);
+    float vy = -velocidad * sin(a);
+    float x0 = j.getCanonX() + j.getDireccion() * LARGO_CANON * cos(a); //el proyectil aparece en la boca del cañon
+    float y0 = j.getCanonY() - LARGO_CANON * sin(a);
 
     proyectil.reset(new Proyectil(x0, y0, vx, vy, MASA_PROY, RADIO_PROY, turno));
     estado = EstadoJuego::VOLANDO;
@@ -65,7 +66,7 @@ void Juego::avanzar(float dt) {
     proyectil->avanzar(dt, GRAVEDAD);
     tiempoVuelo += dt;
 
-    colisionParedes();
+    colisionParedes(); //funciones que verifican los diferentes tipos de colisiones
     colisionObstaculos();
     colisionRepresentante();
 
@@ -83,10 +84,21 @@ void Juego::colisionParedes() {
     Proyectil& p = *proyectil;
     float r = p.getRadio();
 
-    if (p.getPosX() - r < 0)     { p.setPosX(r);          p.setVelX(-p.getVelX()); }
-    if (p.getPosX() + r > ANCHO) { p.setPosX(ANCHO - r);  p.setVelX(-p.getVelX()); }
-    if (p.getPosY() - r < 0)     { p.setPosY(r);          p.setVelY(-p.getVelY()); }
-    if (p.getPosY() + r > ALTO)  { p.setPosY(ALTO - r);   p.setVelY(-p.getVelY()); }
+    if (p.getPosX() - r < 0){
+        p.setPosX(r);
+        p.setVelX(-p.getVelX());}
+
+    if (p.getPosX() + r > ANCHO){
+        p.setPosX(ANCHO - r);
+        p.setVelX(-p.getVelX());}
+
+    if (p.getPosY() - r < 0){
+        p.setPosY(r);
+        p.setVelY(-p.getVelY());}
+
+    if (p.getPosY() + r > ALTO){
+        p.setPosY(ALTO - r);
+        p.setVelY(-p.getVelY());}
 }
 
 // ---------------------------------------------------------------------------------
@@ -97,27 +109,26 @@ void Juego::colisionParedes() {
 // La normal responde "¿con cuál lado/esquina chocó?": (±1,0) lado izq/der, (0,±1) arriba/abajo,
 // y una diagonal si golpea una esquina. Así el rebote depende del ángulo de impacto.
 // ---------------------------------------------------------------------------------
-bool Juego::contactoCirculoRect(const Proyectil& p, const Obstaculo& o,
-                                float& nx, float& ny, float& cx, float& cy) {
+bool Juego::contactoCirculoRect(const Proyectil& p, const Obstaculo& o, float& nx, float& ny, float& cx, float& cy) {
     float px = p.getPosX(), py = p.getPosY(), r = p.getRadio();
     float x0 = o.getPosX(), y0 = o.getPosY();
     float x1 = x0 + o.getAncho(), y1 = y0 + o.getAlto();
 
-    cx = std::max(x0, std::min(px, x1));
-    cy = std::max(y0, std::min(py, y1));
+    cx = max(x0, min(px, x1));
+    cy = max(y0, min(py, y1));
     float dx = px - cx, dy = py - cy;
     float d2 = dx * dx + dy * dy;
     if (d2 > r * r) return false;                      // no se tocan
 
-    if (d2 > 1e-9f) {                                  // caso normal: el centro está fuera del rectángulo
-        float d = std::sqrt(d2);
+    if (d2 > 1e-9){                                  // caso normal: el centro está fuera del rectángulo
+        float d = sqrt(d2);
         nx = dx / d;
         ny = dy / d;
     } else {
         // Caso borde: el centro quedó DENTRO del rectángulo (por velocidad alta).
         // Se expulsa por la cara más cercana.
         float izq = px - x0, der = x1 - px, arr = py - y0, aba = y1 - py;
-        float m = std::min(std::min(izq, der), std::min(arr, aba));
+        float m = min(min(izq, der), min(arr, aba));
         nx = ny = 0;
         if (m == izq)      { nx = -1; cx = x0; cy = py; }
         else if (m == der) { nx = 1;  cx = x1; cy = py; }
@@ -147,7 +158,7 @@ void Juego::colisionObstaculos() {
         float vn = vx * nx + vy * ny;       // componente de v sobre la normal
         if (vn >= 0) continue;              // ya se está alejando: no es un choque nuevo
 
-        float vImpacto = std::sqrt(vx * vx + vy * vy);
+        float vImpacto = sqrt(vx * vx + vy * vy);
 
         // 1) Sacar el proyectil de dentro del bloque (si no, quedaría "pegado")
         p.setPosX(cx + nx * p.getRadio());
@@ -165,7 +176,7 @@ void Juego::colisionObstaculos() {
                 float danio = FACTOR_DANIO * p.getMasa() * vImpacto;
                 o.recibirDanio(danio);
                 mensaje = jugadores[p.getDuenio()].getNombre() + " golpeó un bloque: -"
-                          + std::to_string(static_cast<int>(danio)) + " de daño"
+                          + to_string(static_cast<int>(danio)) + " de daño"
                           + (o.estaDestruido() ? " (¡destruido!)" : "");
             } else {
                 mensaje = "El proyectil rebotó en tu propia infraestructura (sin daño)";
@@ -196,7 +207,7 @@ void Juego::terminarTurno() {
 EstadoJuego Juego::getEstado() const { return estado; }
 int Juego::getTurno() const { return turno; }
 int Juego::getGanador() const { return ganador; }
-const std::string& Juego::getMensaje() const { return mensaje; }
-const std::vector<Obstaculo>& Juego::getObstaculos() const { return obstaculos; }
-const std::vector<Jugador>& Juego::getJugadores() const { return jugadores; }
+const string& Juego::getMensaje() const { return mensaje; }
+const vector<Obstaculo>& Juego::getObstaculos() const { return obstaculos; }
+const vector<Jugador>& Juego::getJugadores() const { return jugadores; }
 const Proyectil* Juego::getProyectil() const { return proyectil.get(); }
