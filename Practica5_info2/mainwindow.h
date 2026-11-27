@@ -49,7 +49,7 @@ private:
         QGraphicsRectItem* rect;
         QGraphicsSimpleTextItem* texto;     // número de resistencia
     };
-    std::vector<ItemBloque> bloques;        // mismo orden que juego.getObstaculos()
+    vector<ItemBloque> bloques;        // mismo orden que juego.getObstaculos()
     QGraphicsRectItem* canones[2];
     QGraphicsEllipseItem* itemProyectil;
     QGraphicsPathItem* itemTrayectoria;

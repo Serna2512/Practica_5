@@ -9,6 +9,7 @@ Juego::Juego() : estado(EstadoJuego::APUNTANDO), turno(0), ganador(-1), tiempoVu
 }
 
 void Juego::reiniciar() {
+    //se usa para los bloques y jugadores
     obstaculos.clear();
     jugadores.clear();
     proyectil.reset();
@@ -17,6 +18,8 @@ void Juego::reiniciar() {
     for (int j = 0; j < 2; ++j) {
         // Convierte una x del lado izquierdo a la x equivalente en el lado derecho
         auto X = [j](float x, float w) { return j == 0 ? x : ANCHO - x - w; };
+
+        //emplace para contruir los objetos directamente dentro del vector
 
         obstaculos.emplace_back(X(5, 5),  38, 5, 12, 200, j);   // pilar exterior (200)
         obstaculos.emplace_back(X(15, 5), 38, 5, 12, 200, j);   // pilar interior (200)
